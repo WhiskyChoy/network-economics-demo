@@ -5,12 +5,15 @@
 <script>
 import echarts from 'echarts'
 import 'echarts-gl'
+import axios from 'axios'
 
 export default {
   name: "GlobeChart",
   data() {
     return {
       chart: null,
+      airports: null,
+      maxCapacityMatrix: null,
       option:{
         globe: {
           baseTexture: "/data/geoinfo/texture/world.topo.bathy.200401.jpg",
@@ -35,9 +38,9 @@ export default {
             }
           },
           viewControl: {
-            targetCoord: [108, 34],
+            targetCoord: [108, 31],
             autoRotate: false,
-            distance: 100
+            distance: 50
           }
         }
       }
@@ -48,10 +51,28 @@ export default {
       const globe = this.$refs['globe'];
       this.chart = echarts.init(globe);
       this.chart.setOption(this.option);
-      console.log(this.chart)
     },
+    async getCalcData(T, ep, date){
+      const paramStr = `T=${T} ep=${ep}`;
+      const fileStr = `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()}.json`
+      const capacityMatrixDir = `/data/capacity/${paramStr}/${fileStr}`
+      const severityVectorDir = `/data/severity/${fileStr}`
+
+      const capacityMatrix = (await axios.get(capacityMatrixDir)).data;
+      const severityVector = (await axios.get(severityVectorDir)).data;
+
+      return {capacityMatrix, severityVector}
+    }
   },
-  mounted() {
+  async beforeMount() {
+    this.airports = (await axios.get('/data/geoinfo/flights/airports.json')).data;
+    this.maxCapacityMatrix = (await axios.get('/data/capacity/max.json')).data;
+    const {capacityMatrix, severityVector} = await this.getCalcData(1000, 0.7, new Date(2020,1,16))
+    console.log(capacityMatrix);
+    console.log(severityVector)
+  },
+  async mounted() {
+    await this.$nextTick();
     this.initChart();
     window.addEventListener('resize', this.chart.resize);
   },
