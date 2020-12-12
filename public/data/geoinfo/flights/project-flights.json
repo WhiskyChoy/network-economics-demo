@@ -1,0 +1,91 @@
+{
+  "airportsFields": [
+    "name",
+    "city",
+    "country",
+    "longitude",
+    "latitude"
+  ],
+  "airlineFields": [
+    "name",
+    "country"
+  ],
+  "airports": [
+    [
+      "Capital Intl",
+      "Beijing",
+      "China",
+      116.584556,
+      40.080111
+    ],
+    [
+      "Pudong",
+      "Shanghai",
+      "China",
+      121.805214,
+      31.143378
+    ],
+    [
+      "Baiyun Intl",
+      "Guangzhou",
+      "China",
+      113.298786,
+      23.392436
+    ],
+    [
+      "Shuangliu",
+      "Chengdu",
+      "China",
+      103.947086,
+      30.578528
+    ],
+    [
+      "Baoan Intl",
+      "Shenzhen",
+      "China",
+      113.810664,
+      22.639258
+    ],
+    [
+      "Wujiaba",
+      "Kunming",
+      "China",
+      102.743536,
+      24.992364
+    ],
+    [
+      "Xianyang",
+      "Xi'an",
+      "China",
+      108.751592,
+      34.447119
+    ],
+    [
+      "Jiangbei",
+      "Chongqing",
+      "China",
+      106.641678,
+      29.719217
+    ],
+    [
+      "Xiaoshan",
+      "Hangzhou",
+      "China",
+      120.434453,
+      30.229503
+    ],
+    [
+      "Tianhe",
+      "Wuhan",
+      "China",
+      114.2081,
+      30.783758
+    ]
+  ],
+  "airlines": [
+    [
+      "Airlines of Passenger Plane in China",
+      "China"
+    ]
+  ]
+}

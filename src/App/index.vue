@@ -1,17 +1,15 @@
-<template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+<template lang="pug">
+  div#app
+    GlobeChart
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
 
+import GlobeChart from "@/components/GlobeChart";
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    GlobeChart
   }
 }
 </script>
@@ -24,5 +22,12 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+  display: flex;
+  justify-content: center;
 }
+
+body{
+  margin: 0
+}
+
 </style>
