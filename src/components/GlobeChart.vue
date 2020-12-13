@@ -2,6 +2,8 @@
   div.outer-container
     div.chart-container(ref="globe")
     div.tool-bar
+      el-select(v-model="typeSelected" placeholder="Capacity Type" @change="handleChangeOption" )
+        el-option(v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" :disabled="loading")
       el-cascader(v-model="paramSelected" :options="selectOptions" placeholder="Select Param T" @change="handleChangeParam" :disabled="loading")
       el-date-picker(v-model="dateSelected" :pickerOptions="pickerOptions" :clearable="false" @change="handleChangeDate" :disabled="loading")
 </template>
@@ -23,12 +25,14 @@ async function getCalcData(T, ep, date) {
   return {capacityMatrix, severityVector};
 }
 
+
 function getFlight(route, lineWidth, direction) {
   return {
     type: 'lines3D',
     effect: {
       show: true,
-      trailWidth: 2,
+      constantSpeed: lineWidth / 1.5,
+      trailWidth: Math.max(0.3 * lineWidth, 1),
       trailLength: 0.1,
       trailOpacity: 1,
       trailColor: direction ? 'rgb(113, 150, 60)' : 'rgb(188, 59, 24)'
@@ -77,6 +81,7 @@ export default {
       loading: false,
       paramSelected: [1000, 0.7],
       dateSelected: this.startDate,
+      typeSelected: 'relative',
       pickerOptions: {
         disabledDate: (time) => {
           return time.getTime() < this.startDate.getTime() || time.getTime() > this.endDate.getTime()
@@ -93,6 +98,16 @@ export default {
           }
         }]
       },
+      typeOptions: [
+        {
+          value: 'relative',
+          label: 'Relative Capacity'
+        },
+        {
+          value: 'absolute',
+          label: 'Absolute Capacity'
+        }
+      ],
       selectOptions: [{
         value: 100,
         label: 'T=100',
@@ -163,10 +178,14 @@ export default {
     async updateChart() {
       this.loading = true;
       // this.chart.showLoading();
-      await this.updateSeries(this.paramSelected[0], this.paramSelected[1], this.dateSelected);
+      await this.updateSeries(this.paramSelected[0], this.paramSelected[1], this.dateSelected, this.typeSelected);
       this.chart.setOption(this.option, true);
       this.loading = false;
       // this.chart.hideLoading();
+    },
+
+    handleChangeOption(){
+      this.updateChart();
     },
 
     handleChangeParam() {
@@ -205,7 +224,7 @@ export default {
             let lineWidth = 1;
             if (type === 'relative') {
               lineWidth = Math.max(this.lineScale * capacityMatrix[i][j] / this.maxCapacityMatrix[i][j], 1);
-            } else {
+            } else if (type === 'absolute') {
               const maxC = Math.max.apply(null, capacityMatrix.flat(2));
               lineWidth = Math.max(this.lineScale * capacityMatrix[i][j] / maxC, 1);
             }
@@ -246,13 +265,20 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="less" scoped>
 .outer-container {
   width: 60%;
   min-width: 700px;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.tool-bar{
+  margin-top: 1rem;
+  *{
+    margin-right: 1.5rem
+  }
 }
 
 .chart-container {
