@@ -196,6 +196,7 @@ export default {
 
     handlePlayDate() {
       if (this.playing) {
+        this.updateChart(true);
         clearInterval(this.intervalIdx);
         this.playing = false;
       } else {
