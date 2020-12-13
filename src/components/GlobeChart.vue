@@ -73,6 +73,7 @@ export default {
   },
   data() {
     return {
+      expectedMaxS: 50000,
       loading: false,
       paramSelected: [1000, 0.7],
       dateSelected: this.startDate,
@@ -120,6 +121,7 @@ export default {
       airports: null,
       maxCapacityMatrix: null,
       option: {
+        animation: false,
         globe: {
           baseTexture: "/data/geoinfo/texture/world.topo.bathy.200401.jpg",
           heightTexture: "/data/geoinfo/texture/world.topo.bathy.200401.jpg",
@@ -158,18 +160,20 @@ export default {
     }
   },
   methods: {
-    async updateChart(){
+    async updateChart() {
       this.loading = true;
+      // this.chart.showLoading();
       await this.updateSeries(this.paramSelected[0], this.paramSelected[1], this.dateSelected);
-      this.chart.setOption(this.option);
+      this.chart.setOption(this.option, true);
       this.loading = false;
+      // this.chart.hideLoading();
     },
 
     handleChangeParam() {
       this.updateChart();
     },
 
-    handleChangeDate(){
+    handleChangeDate() {
       this.updateChart();
     },
 
@@ -214,7 +218,8 @@ export default {
       //Add the lines first
       for (let i = 0; i < range; i++) {
         const maxS = Math.max.apply(null, severityVector);
-        const pointSize = Math.max(this.pointScale / (1 + Math.log10(maxS / severityVector[i])), 1);
+        const scaleRate = 1 / (1 + Math.log10(this.expectedMaxS / maxS))
+        const pointSize = Math.max(scaleRate * this.pointScale / (1 + Math.log10(maxS / severityVector[i])), 1);
         const point = getPoint(this.airports[i], pointSize);
         this.option.series.push(point);
       }
