@@ -27,7 +27,7 @@ function getFlight(route, lineWidth, direction) {
       trailWidth: 2,
       trailLength: 0.1,
       trailOpacity: 1,
-      trailColor: direction?'rgb(113, 150, 60)':'rgb(118, 233, 241)'
+      trailColor: direction?'rgb(113, 150, 60)':'rgb(188, 59, 24)'
     },
 
     lineStyle: {
@@ -80,10 +80,11 @@ export default {
           light: {
             main: {
               intensity: 5,
-              shadow: true
+              shadow: true,
+              time: (()=>{const date = new Date(); date.setHours(20); return date})()
             },
             ambientCubemap: {
-              texture: "/data/geoinfo/",
+              texture: "/data/geoinfo/texture/pisa.hdr",
               diffuseIntensity: 0.2
             }
           },
