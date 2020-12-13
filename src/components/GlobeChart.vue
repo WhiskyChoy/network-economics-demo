@@ -1,5 +1,9 @@
 <template lang="pug">
-  div.chart-container(ref="globe")
+  div.outer-container
+    div.chart-container(ref="globe")
+    div.tool-bar
+      el-cascader(v-model="paramSelected" :options="selectOptions" placeholder="Select Param T" @change="handleChangeParam" :disabled="loading")
+      el-date-picker(v-model="dateSelected" :pickerOptions="pickerOptions" :clearable="false" @change="handleChangeDate" :disabled="loading")
 </template>
 
 <script>
@@ -27,7 +31,7 @@ function getFlight(route, lineWidth, direction) {
       trailWidth: 2,
       trailLength: 0.1,
       trailOpacity: 1,
-      trailColor: direction?'rgb(113, 150, 60)':'rgb(188, 59, 24)'
+      trailColor: direction ? 'rgb(113, 150, 60)' : 'rgb(188, 59, 24)'
     },
 
     lineStyle: {
@@ -57,8 +61,59 @@ function getPoint(airport, pointSize) {
 
 export default {
   name: "GlobeChart",
+  props: {
+    startDate: {
+      type: Date,
+      default: () => new Date(2020, 1, 16)
+    },
+    endDate: {
+      type: Date,
+      default: () => new Date(2020, 3, 16)
+    }
+  },
   data() {
     return {
+      loading: false,
+      paramSelected: [1000, 0.7],
+      dateSelected: this.startDate,
+      pickerOptions: {
+        disabledDate: (time) => {
+          return time.getTime() < this.startDate.getTime() || time.getTime() > this.endDate.getTime()
+        },
+        shortcuts: [{
+          text: 'Feb. 16, 2020',
+          onClick: (picker) => {
+            picker.$emit('pick', this.startDate);
+          }
+        }, {
+          text: 'Apr. 16, 2020',
+          onClick: (picker) => {
+            picker.$emit('pick', this.endDate);
+          }
+        }]
+      },
+      selectOptions: [{
+        value: 100,
+        label: 'T=100',
+        disabled: true
+      }, {
+        value: 1000,
+        label: 'T=1000',
+        children: [{
+          value: 0.7,
+          label: 'ep=0.7'
+        }, {
+          value: 0.8,
+          label: 'ep=0.8'
+        }, {
+          value: 0.9,
+          label: 'ep=0.9'
+        }]
+      }, {
+        value: 10000,
+        label: 'T=10000',
+        disabled: true
+      }],
       pointScale: 30,
       lineScale: 15,
       chart: null,
@@ -81,7 +136,11 @@ export default {
             main: {
               intensity: 5,
               shadow: true,
-              time: (()=>{const date = new Date(); date.setHours(20); return date})()
+              time: (() => {
+                const date = new Date();
+                date.setHours(20);
+                return date
+              })()
             },
             ambientCubemap: {
               texture: "/data/geoinfo/texture/pisa.hdr",
@@ -99,6 +158,21 @@ export default {
     }
   },
   methods: {
+    async updateChart(){
+      this.loading = true;
+      await this.updateSeries(this.paramSelected[0], this.paramSelected[1], this.dateSelected);
+      this.chart.setOption(this.option);
+      this.loading = false;
+    },
+
+    handleChangeParam() {
+      this.updateChart();
+    },
+
+    handleChangeDate(){
+      this.updateChart();
+    },
+
     initChart() {
       const globe = this.$refs['globe'];
       this.chart = echarts.init(globe);
@@ -106,7 +180,7 @@ export default {
     },
 
     stopOrStartAnime() {
-      this.series&&this.series.forEach((_, idx) => {
+      this.series && this.series.forEach((_, idx) => {
         this.chart.dispatchAction({
           type: 'lines3DToggleEffect',
           seriesIndex: idx
@@ -114,7 +188,7 @@ export default {
       })
     },
 
-    async getSeries(T, ep, date, type = 'relative') {
+    async updateSeries(T, ep, date, type = 'relative') {
 
       this.option.series = [];
       const {capacityMatrix, severityVector} = await getCalcData(T, ep, date);
@@ -129,7 +203,7 @@ export default {
               lineWidth = Math.max(this.lineScale * capacityMatrix[i][j] / this.maxCapacityMatrix[i][j], 1);
             } else {
               const maxC = Math.max.apply(null, capacityMatrix.flat(2));
-              lineWidth = Math.max(this.lineScale * capacityMatrix[i][j] / maxC, 1) ;
+              lineWidth = Math.max(this.lineScale * capacityMatrix[i][j] / maxC, 1);
             }
             const flight = getFlight(route, lineWidth, i < j);
             this.option.series.push(flight);
@@ -140,8 +214,7 @@ export default {
       //Add the lines first
       for (let i = 0; i < range; i++) {
         const maxS = Math.max.apply(null, severityVector);
-        const pointSize = Math.max(this.pointScale /(1 + Math.log10(maxS / severityVector[i] )), 1);
-        console.log(pointSize)
+        const pointSize = Math.max(this.pointScale / (1 + Math.log10(maxS / severityVector[i])), 1);
         const point = getPoint(this.airports[i], pointSize);
         this.option.series.push(point);
       }
@@ -156,8 +229,7 @@ export default {
   async mounted() {
     await this.$nextTick();
     this.initChart();
-    await this.getSeries(1000, 0.7, new Date(2020,1,16))
-    this.chart.setOption(this.option)
+    await this.updateChart();
     window.addEventListener('resize', this.chart.resize);
     window.addEventListener('keydown', this.stopOrStartAnime);
   },
@@ -170,8 +242,16 @@ export default {
 </script>
 
 <style scoped>
+.outer-container {
+  width: 60%;
+  min-width: 700px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .chart-container {
-  width: 40%;
+  width: 65%;
   min-width: 600px;
   height: 40vh;
   min-height: 600px;
