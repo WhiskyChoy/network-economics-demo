@@ -2,10 +2,11 @@
   div.outer-container
     div.chart-container(ref="globe")
     div.tool-bar
-      el-select(v-model="typeSelected" placeholder="Capacity Type" @change="handleChangeOption" )
-        el-option(v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" :disabled="loading")
-      el-cascader(v-model="paramSelected" :options="selectOptions" placeholder="Select Param T" @change="handleChangeParam" :disabled="loading")
-      el-date-picker(v-model="dateSelected" :pickerOptions="pickerOptions" :clearable="false" @change="handleChangeDate" :disabled="loading")
+      el-select(v-model="typeSelected" placeholder="Capacity Type" @change="handleChangeOption" :disabled="loading||playing")
+        el-option(v-for="item in typeOptions" :key="item.value" :label="item.label" :value="item.value" :disabled="loading||playing")
+      el-cascader(v-model="paramSelected" :options="selectOptions" placeholder="Select Param T" @change="handleChangeParam" :disabled="loading||playing")
+      el-date-picker(v-model="dateSelected" :pickerOptions="pickerOptions" :clearable="false" @change="handleChangeDate" :disabled="loading||playing")
+      el-button(:icon="playing?'el-icon-switch-button':'el-icon-caret-right'" circle @click="handlePlayDate" :disabled="dateSelected.getTime() >= endDate.getTime()")
 </template>
 
 <script>
@@ -25,12 +26,16 @@ async function getCalcData(T, ep, date) {
   return {capacityMatrix, severityVector};
 }
 
+function getNextDate(date) {
+  const oneDayDelta = 1000 * 3600 * 24;
+  return new Date(date.getTime() + oneDayDelta);
+}
 
-function getFlight(route, lineWidth, direction) {
+function getFlight(route, lineWidth, direction, showEffect = true) {
   return {
     type: 'lines3D',
     effect: {
-      show: true,
+      show: showEffect,
       constantSpeed: lineWidth / 1.5,
       trailWidth: Math.max(0.3 * lineWidth, 1),
       trailLength: 0.1,
@@ -77,8 +82,12 @@ export default {
   },
   data() {
     return {
+      intervalIdx: null,
+      playInterval: 500,
       expectedMaxS: 50000,
+      toggled: false,
       loading: false,
+      playing: false,
       paramSelected: [1000, 0.7],
       dateSelected: this.startDate,
       typeSelected: 'relative',
@@ -175,16 +184,40 @@ export default {
     }
   },
   methods: {
-    async updateChart() {
+    async updateChart(showEffect = true) {
       this.loading = true;
       // this.chart.showLoading();
-      await this.updateSeries(this.paramSelected[0], this.paramSelected[1], this.dateSelected, this.typeSelected);
+      await this.updateSeries(this.paramSelected[0], this.paramSelected[1], this.dateSelected, this.typeSelected, showEffect);
       this.chart.setOption(this.option, true);
       this.loading = false;
+      this.toggled = false;
       // this.chart.hideLoading();
     },
 
-    handleChangeOption(){
+    handlePlayDate() {
+      if (this.playing) {
+        clearInterval(this.intervalIdx);
+        this.playing = false;
+      } else {
+        if (this.dateSelected.getTime() < this.endDate.getTime()) {
+          this.playing = true;
+          this.intervalIdx = setInterval(() => {
+            let date = getNextDate(this.dateSelected);
+            if (date.getTime() < this.endDate.getTime()) {
+              this.dateSelected = date;
+              this.updateChart(false);
+            } else {
+              this.dateSelected = date;
+              this.updateChart(true);
+              clearInterval(this.intervalIdx);
+              this.playing = false;
+            }
+          }, this.playInterval)
+        }
+      }
+    },
+
+    handleChangeOption() {
       this.updateChart();
     },
 
@@ -202,8 +235,9 @@ export default {
       this.chart.setOption(this.option);
     },
 
-    stopOrStartAnime() {
-      this.series && this.series.forEach((_, idx) => {
+    toggle() {
+      this.toggled = !this.toggled;
+      this.option.series && this.option.series.forEach((_, idx) => {
         this.chart.dispatchAction({
           type: 'lines3DToggleEffect',
           seriesIndex: idx
@@ -211,7 +245,13 @@ export default {
       })
     },
 
-    async updateSeries(T, ep, date, type = 'relative') {
+    stopOrStartAnime(event) {
+      if (event.key === ' ' && !this.playing) {
+        this.toggle();
+      }
+    },
+
+    async updateSeries(T, ep, date, type = 'relative', showEffect = true) {
 
       this.option.series = [];
       const {capacityMatrix, severityVector} = await getCalcData(T, ep, date);
@@ -228,7 +268,7 @@ export default {
               const maxC = Math.max.apply(null, capacityMatrix.flat(2));
               lineWidth = Math.max(this.lineScale * capacityMatrix[i][j] / maxC, 1);
             }
-            const flight = getFlight(route, lineWidth, i < j);
+            const flight = getFlight(route, lineWidth, i < j, showEffect);
             this.option.series.push(flight);
           }
         }
@@ -274,9 +314,10 @@ export default {
   align-items: center;
 }
 
-.tool-bar{
+.tool-bar {
   margin-top: 1rem;
-  *{
+
+  * {
     margin-right: 1.5rem
   }
 }
