@@ -82,6 +82,7 @@ export default {
   },
   data() {
     return {
+      waitList: Promise.resolve(),
       intervalIdx: null,
       playInterval: 500,
       expectedMaxS: 50000,
@@ -184,36 +185,45 @@ export default {
     }
   },
   methods: {
+    chartNextTick() {
+      return new Promise(resolve => {
+        this.chart.on('rendered', () => {
+          resolve();
+        });
+      });
+    },
+
     async updateChart(showEffect = true) {
       this.loading = true;
       // this.chart.showLoading();
       await this.updateSeries(this.paramSelected[0], this.paramSelected[1], this.dateSelected, this.typeSelected, showEffect);
       this.chart.setOption(this.option, true);
+      await this.chartNextTick();
       this.loading = false;
       this.toggled = false;
       // this.chart.hideLoading();
     },
 
-    handlePlayDate() {
+    async handlePlayDate() {
       if (this.playing) {
-        this.updateChart(true);
-        clearInterval(this.intervalIdx);
         this.playing = false;
+        await this.chartNextTick();
+        await this.updateChart(true);
       } else {
         if (this.dateSelected.getTime() < this.endDate.getTime()) {
           this.playing = true;
-          this.intervalIdx = setInterval(() => {
-            let date = getNextDate(this.dateSelected);
-            if (date.getTime() < this.endDate.getTime()) {
-              this.dateSelected = date;
-              this.updateChart(false);
+          while (this.playing && this.dateSelected.getTime() < this.endDate.getTime()) {
+            this.dateSelected = getNextDate(this.dateSelected);
+            if (!this.playing) {
+              return;
+            }
+            if (this.dateSelected.getTime() < this.endDate.getTime()) {
+              await this.updateChart(false);
             } else {
-              this.dateSelected = date;
-              this.updateChart(true);
-              clearInterval(this.intervalIdx);
+              await this.updateChart(true);
               this.playing = false;
             }
-          }, this.playInterval)
+          }
         }
       }
     },
