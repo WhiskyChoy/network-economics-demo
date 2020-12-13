@@ -26,6 +26,14 @@ async function getCalcData(T, ep, date) {
   return {capacityMatrix, severityVector};
 }
 
+function timeout(time) {
+  return new Promise(resolve => {
+    setTimeout(function () {
+      resolve()
+    }, time)
+  })
+}
+
 function getNextDate(date) {
   const oneDayDelta = 1000 * 3600 * 24;
   return new Date(date.getTime() + oneDayDelta);
@@ -84,7 +92,7 @@ export default {
     return {
       waitList: Promise.resolve(),
       intervalIdx: null,
-      playInterval: 500,
+      playInterval: 150,
       expectedMaxS: 50000,
       toggled: false,
       loading: false,
@@ -207,6 +215,7 @@ export default {
     async handlePlayDate() {
       if (this.playing) {
         this.playing = false;
+        // set this.playing as false first
         await this.chartNextTick();
         await this.updateChart(true);
       } else {
@@ -223,6 +232,7 @@ export default {
               await this.updateChart(true);
               this.playing = false;
             }
+            await timeout(this.playInterval);
           }
         }
       }
