@@ -189,7 +189,7 @@ export default {
 <style scoped>
 .outer-container {
   width: 60%;
-  min-width: 700px;
+  min-width: 900px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -197,7 +197,7 @@ export default {
 
 .chart-container {
   width: 65%;
-  min-width: 600px;
+  min-width: 830px;
   height: 40vh;
   min-height: 600px;
   /*background-color: red*/
