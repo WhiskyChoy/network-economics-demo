@@ -67,15 +67,6 @@ body{
   margin: 0
 }
 
-/* MathJax v2.7.5 from 'cdnjs.cloudflare.com' */
-.mjx-chtml {
-  outline: 0;
-}
-.MJXc-display {
-  overflow-x: auto;
-  overflow-y: hidden;
-}
-
 .global-total-chart{
   margin-top: 1rem;
 }
@@ -90,16 +81,6 @@ body{
 
 .subtitle{
   margin-top: 0;
-}
-
-.middle {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.body_container{
-  flex-direction: column;
 }
 
 .section{
@@ -126,25 +107,6 @@ body{
 
 .references{
   color: rgb(100,100,100);
-}
-
-.left_right{
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.bold {
-  font-weight: bold;
-}
-
-.no_shrink {
-  flex-shrink: 0;
-}
-
-.adjust_left{
-  width: 70%;
-  min-width: 550px;
 }
 
 </style>
