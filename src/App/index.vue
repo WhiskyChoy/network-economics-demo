@@ -1,6 +1,7 @@
 <template lang="pug">
   div#app
-    h1 Demo For CIE6036
+    h1.title Dynamic Aviation Network Under Pandemic
+    h2.subtitle A Demo For Course CIE6036
     GlobeChart
     GlobeTotalChart.global-total-chart
 </template>
@@ -37,6 +38,10 @@ body{
 
 .global-total-chart{
   margin-top: 1rem;
+}
+
+.subtitle{
+  margin-top: 0;
 }
 
 </style>
