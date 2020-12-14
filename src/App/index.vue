@@ -67,6 +67,15 @@ body{
   margin: 0
 }
 
+/* MathJax v2.7.5 from 'cdnjs.cloudflare.com' */
+.mjx-chtml {
+  outline: 0;
+}
+.MJXc-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 .global-total-chart{
   margin-top: 1rem;
 }
