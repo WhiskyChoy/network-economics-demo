@@ -159,15 +159,26 @@ export default {
           baseTexture: "/data/geoinfo/texture/world.topo.bathy.200401.jpg",
           heightTexture: "/data/geoinfo/texture/world.topo.bathy.200401.jpg",
           displacementScale: 0.04,
+          displacementQuality: 'medium',
           shading: 'lambert',
           environment: "/data/geoinfo/texture/starfield.jpg",
           realisticMaterial: {
             roughness: 0.9
           },
           postEffect: {
+            enable: true,
+            depthOfField: {
+              enable: false,
+              focalDistance: 150
+            }
+          },
+          temporalSuperSampling: {
             enable: true
           },
           light: {
+            ambient: {
+              intensity: 0
+            },
             main: {
               intensity: 5,
               shadow: true,
@@ -179,7 +190,9 @@ export default {
             },
             ambientCubemap: {
               texture: "/data/geoinfo/texture/pisa.hdr",
-              diffuseIntensity: 0.2
+              exposure: 1,
+              diffuseIntensity: 0.2,
+              specularIntensity: 2
             }
           },
           viewControl: {
@@ -348,6 +361,6 @@ export default {
   min-width: 600px;
   height: 40vh;
   min-height: 600px;
-  background-color: red
+  //background-color: red
 }
 </style>
